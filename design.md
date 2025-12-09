@@ -1,67 +1,83 @@
 # Patient Document Portal — Design Document
 
-## 1. Tech Stack Choices
+## 📌 1️⃣ Tech Stack Choices
 
 ### Q1. What frontend framework did you use and why?
+
 **React + Vite**
 
-- Lightning-fast development with Hot Module Replacement (HMR)
-- Component-based architecture
-- Significantly better build performance and smaller bundles than Create React App
-- Excellent ecosystem and seamless integration with Tailwind CSS
+- Fast development experience with HMR
+- Component-based UI
+- Better performance & bundle speed compared to CRA
+- Strong ecosystem + Tailwind integration
 
 ### Q2. What backend framework did you choose and why?
+
 **Node.js + Express.js**
 
-- Lightweight and extremely popular for building REST APIs
-- Simple and robust file upload handling using Multer middleware
-- High performance with non-blocking I/O
-- Full JavaScript/TypeScript consistency across frontend and backend
+- Lightweight & popular for REST API development
+- Easy file upload handling with Multer
+- Fast performance using non-blocking I/O
 
 ### Q3. What database did you choose and why?
+
 **SQLite**
 
-- Zero-configuration, no separate server required
-- File-based → perfect for local development and assignments
-- Easy to back up (just copy the .db file)
-- More than sufficient for a single-user application
+- Lightweight + requires no installation
+- Perfect for local development assignments
+- File-based storage, easy backups
+- Sufficient for a single-user local app
 
-### Q4. If the app needed to support 1,000 concurrent users, what changes would be required?
+### Q4. If supporting 1,000 users, what changes would be needed?
 
-- Replace SQLite with PostgreSQL (better concurrency & scalability)
-- Move file storage to cloud object storage (AWS S3, Google Cloud Storage, etc.)
-- Add proper authentication (JWT or OAuth2)
-- Implement secure login (email/password or OTP)
-- Add rate limiting, CORS policies, input validation, and role-based access control
-- Use a reverse proxy/load balancer (NGINX) and horizontal scaling
+- Replace SQLite with **PostgreSQL** for concurrency
+- Serve file storage using **AWS S3** / **Google Cloud Storage**
+- Add **authentication** (JWT or OAuth)
+- Implement email/password or OTP login
+- Improve API security (rate limiting, access rules)
+- Use **NGINX** or load balancer for scalability
 
-## 2. Architecture Overview
-┌────────────────┐          Upload / Fetch           ┌────────────────┐
-│    Frontend     │ ───────────────────────────────▶ │    Backend     │
-│  React + Vite   │         JSON / File APIs          │  Express.js    │
-└───────┬────────┘                                   └───────┬────────┘
-│                                                    │
-│ Preview / Download                                 │ Query / Save
-▼                                                    ▼
-┌────────────────┐                                  ┌────────────────┐
-│  Local Uploads  │ ◀──────────────────────────────▶ │   SQLite DB    │
-│    Folder       │        File operations           │ documents table│
-└────────────────┘                                  └────────────────┘
-text## 3. API Specification
+## 🏗️ 2️⃣ Architecture Overview
 
-| Endpoint               | Method | Description                    |
-|------------------------|--------|--------------------------------|
-| `/documents/upload`    | POST   | Upload a PDF file              |
-| `/documents`           | GET    | List all uploaded documents    |
-| `/documents/:id`       | GET    | Download a specific file       |
-| `/documents/:id`       | DELETE | Delete a specific file         |
+### Architecture Flow Diagram
 
-### API Details
+```
+ ┌──────────────┐        Upload / Fetch          ┌──────────────┐
+ │   Frontend    │  ───────────────────────────▶ │   Backend     │
+ │ (React + Vite)│       JSON / File APIs        │ (Express.js)  │
+ └───────┬───────┘                               └───────┬───────┘
+         │                                               │
+         │ Preview / Download                            │ Query
+         ▼                                               ▼
+ ┌──────────────┐                             ┌──────────────┐
+ │ Local Uploads │                             │   SQLite DB  │
+ │   Folder      │◀────────────────────────────│ documents tbl│
+ └──────────────┘                             └──────────────┘
+```
+
+## 🔌 3️⃣ API Specification
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/documents/upload` | POST | Upload a PDF file |
+| `/documents` | GET | List all uploaded documents |
+| `/documents/:id` | GET | Download specific file |
+| `/documents/:id` | DELETE | Delete specific file |
+
+### 📍 API Details
 
 #### POST /documents/upload
-**Request** (multipart/form-data)
-file: <PDF file>
-text**Success Response (200)**
+
+Upload a PDF file
+
+**Request (multipart/form-data):**
+
+```
+file: <PDF File>
+```
+
+**Response (200):**
+
 ```json
 {
   "message": "File uploaded successfully",
@@ -72,9 +88,16 @@ text**Success Response (200)**
     "size": 29045
   }
 }
-GET /documents
-Response
-JSON[
+```
+
+#### GET /documents
+
+Returns all documents
+
+**Response:**
+
+```json
+[
   {
     "id": 1,
     "originalName": "blood_report.pdf",
@@ -82,36 +105,58 @@ JSON[
     "created_at": "2025-12-09 15:43:21"
   }
 ]
-GET /documents/:id
-Streams the PDF file to the browser for download
-DELETE /documents/:id
-Response
-JSON{
+```
+
+#### GET /documents/:id
+
+Downloads a PDF file
+
+**Response:**
+
+```
+⬇ PDF file download to browser
+```
+
+#### DELETE /documents/:id
+
+Deletes file + database record
+
+**Response:**
+
+```json
+{
   "message": "Document deleted successfully"
 }
-4. Data Flow Description
-Upload Flow
+```
 
-User selects a PDF file in the React UI
-Frontend sends multipart/form-data to POST /documents/upload
-Backend validates that the file is a PDF
-Multer saves the file to the local uploads/ folder with a unique name
-Metadata (original name, stored filename, size, created_at) is saved in SQLite
-Success response → UI refreshes the document list (no page reload)
-Newly uploaded file appears instantly
+## 🔄 4️⃣ Data Flow Description
 
-Download Flow
+### 📝 Upload Flow
 
-User clicks "Download" on a document
-Frontend calls GET /documents/:id
-Backend retrieves the file path from the database
-File is streamed to the browser with Content-Disposition: attachment
+1. User selects a file in UI
+2. React sends `multipart/form-data` → `/documents/upload`
+3. Backend validates: must be PDF
+4. Multer saves file into `uploads/` folder
+5. SQLite stores metadata (name, path, size, created_at)
+6. API response triggers UI refresh (without reload)
+7. File appears instantly in the list
 
-5. Assumptions & Constraints
+### 📤 Download Flow
 
-Only one user → no authentication or login system needed
-Only PDF files are allowed
-Files are stored locally in an uploads/ folder
-Files are expected to be reasonably small (no chunked uploads)
-Application runs locally (not deployed to the cloud)
-No concurrency concerns due to single-user design
+1. User clicks "Download"
+2. Backend finds file by ID in DB
+3. File is streamed for browser download
+
+## 🧩 5️⃣ Assumptions
+
+- Only one user exists (no login system required)
+- Max file type allowed: **PDF only**
+- Local uploads folder acts as storage
+- Files expected to be small (no chunk uploads)
+- App runs locally, not cloud-hosted
+- No concurrency issues due to single-user assumption
+
+---
+
+**Document Version:** 1.0  
+**Last Updated:** December 2025
