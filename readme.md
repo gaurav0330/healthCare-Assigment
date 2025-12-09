@@ -1,4 +1,4 @@
-# 📌 Patient Document Portal
+# Patient Document Portal
 
 A simple full-stack healthcare web application for managing medical documents.
 
