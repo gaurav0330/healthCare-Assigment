@@ -42,8 +42,8 @@
 ### Architecture Flow Diagram
 
 ```
- ┌──────────────┐        Upload / Fetch          ┌──────────────┐
- │   Frontend    │  ───────────────────────────▶ │   Backend     │
+ ┌──────────────-┐        Upload / Fetch         ┌──────────────┐
+ │   Frontend    │  ───────────────────────────▶|   Backend     │
  │ (React + Vite)│       JSON / File APIs        │ (Express.js)  │
  └───────┬───────┘                               └───────┬───────┘
          │                                               │
