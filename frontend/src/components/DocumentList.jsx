@@ -1,77 +1,134 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { API } from "../api";
 import { toast } from "react-hot-toast";
-import { FiDownload, FiTrash } from "react-icons/fi";
+import { FiDownload, FiTrash, FiSearch } from "react-icons/fi";
+import { FaRegFilePdf } from "react-icons/fa";
 
-export default function DocumentList() {
+export default function DocumentList({ isDark, updateSignal }) {
   const [docs, setDocs] = useState([]);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [loading, setLoading] = useState(false);
 
   const fetchDocs = async () => {
     try {
+      setLoading(true);
       const res = await API.get("/documents");
       setDocs(res.data);
     } catch {
       toast.error("Failed to load documents");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchDocs();
-  }, []);
+  }, [updateSignal]);
 
-  const downloadFile = (id) => {
-    window.open(`http://localhost:5000/documents/${id}`, "_blank");
-  };
+  const formatDate = (dt) =>
+    new Date(dt.replace(" ", "T")).toLocaleString("en-IN", {
+      dateStyle: "medium",
+      timeStyle: "short"
+    });
 
-  const deleteFile = async (id) => {
-    try {
-      await API.delete(`/documents/${id}`);
-      toast.success("File removed");
-      fetchDocs();
-    } catch {
-      toast.error("Delete failed");
-    }
-  };
+  const filteredDocs = useMemo(() => {
+    let filtered = docs.filter((d) =>
+      d.originalName.toLowerCase().includes(search.toLowerCase())
+    );
+
+    filtered.sort((a, b) => {
+      const da = new Date(a.created_at);
+      const db = new Date(b.created_at);
+
+      switch (sortBy) {
+        case "oldest":
+          return da - db;
+        case "name":
+          return a.originalName.localeCompare(b.originalName);
+        default:
+          return db - da;
+      }
+    });
+
+    return filtered;
+  }, [docs, search, sortBy]);
 
   return (
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {docs.length === 0 ? (
-        <p className="text-gray-500 text-center w-full">
-          No documents yet. Upload to get started! 📄
-        </p>
+    <div className="space-y-4">
+      {/* SEARCH + SORT */}
+      <div className="flex gap-3 flex-col md:flex-row md:items-center md:justify-between">
+        <div className="relative w-full md:w-1/2">
+          <FiSearch className="absolute left-3 top-3 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className={`w-full pl-9 py-2 rounded-lg border outline-none
+              ${isDark ? "bg-slate-900 border-slate-700 text-white"
+                       : "bg-white border-gray-300 text-gray-800"}`}
+          />
+        </div>
+
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className={`px-3 py-2 rounded-lg border
+            ${isDark ? "bg-slate-900 border-slate-700 text-white"
+                     : "bg-white border-gray-300 text-gray-800"}`}
+        >
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="name">Name (A-Z)</option>
+        </select>
+      </div>
+
+      {/* LIST */}
+      {loading ? (
+        <p className="text-gray-500 text-sm">Loading...</p>
+      ) : filteredDocs.length === 0 ? (
+        <p className="text-gray-500">No documents uploaded yet 📄</p>
       ) : (
-        docs.map((doc) => (
-          <div 
-            key={doc.id} 
-            className="bg-white p-5 rounded-xl shadow-md border hover:shadow-xl transition-all animate-fadeUp"
-          >
-            <p className="font-semibold text-teal-700 truncate">
-              📄 {doc.originalName}
-            </p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredDocs.map((doc) => (
+            <div
+              key={doc.id}
+              className={`rounded-xl p-4 flex gap-3 border shadow-md transition
+                animate-fadeUp
+                ${isDark ? "bg-slate-900 border-slate-700"
+                         : "bg-white border-gray-100"}`}
+            >
+              <FaRegFilePdf className="text-rose-600 text-3xl mt-1" />
 
-            <p className="text-gray-500 text-sm mt-1">
-              {(doc.filesize / 1024).toFixed(2)} KB
-            </p>
+              <div className="flex-1">
+                <p className="font-semibold truncate">{doc.originalName}</p>
+                <p className="text-xs text-gray-500">
+                  {formatDate(doc.created_at)}
+                </p>
 
-            <div className="flex gap-4 mt-4">
-              <button
-                onClick={() => downloadFile(doc.id)}
-                className="text-blue-600 hover:text-blue-800 transition"
-                title="Download"
-              >
-                <FiDownload size={22} />
-              </button>
-
-              <button
-                onClick={() => deleteFile(doc.id)}
-                className="text-red-600 hover:text-red-800 transition"
-                title="Delete"
-              >
-                <FiTrash size={22} />
-              </button>
+                <div className="flex gap-4 mt-3">
+                  <button
+                    className="text-blue-600 hover:underline text-sm"
+                    onClick={() => window.open(`http://localhost:5000/documents/${doc.id}`)}
+                  >
+                    Download
+                  </button>
+                  <button
+                    className="text-red-600 hover:underline text-sm"
+                    onClick={async () => {
+                      await API.delete(`/documents/${doc.id}`);
+                      toast.success("Deleted!");
+                      fetchDocs();
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        ))
+          ))}
+        </div>
       )}
     </div>
   );

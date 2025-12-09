@@ -1,59 +1,78 @@
+import { useState } from "react";
 import { Toaster } from "react-hot-toast";
+import { FiFileText, FiMoon, FiSun } from "react-icons/fi";
 import UploadForm from "./components/UploadForm";
 import DocumentList from "./components/DocumentList";
-import { FiFileText } from "react-icons/fi";
-import MedicalUploadImg from "./assets/medical-upload.png"; 
-
+import MedicalUploadImg from "./assets/medical-upload.png";
 
 function App() {
-  const refreshList = () => window.location.reload();
+  const [isDark, setIsDark] = useState(false);
+  const toggleTheme = () => setIsDark((prev) => !prev);
+
+  const [updateSignal, setUpdateSignal] = useState(false);
+  const triggerUpdate = () => setUpdateSignal((prev) => !prev);
+
+  const rootClass = isDark
+    ? "min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center px-4"
+    : "min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 text-slate-900 flex flex-col items-center px-4";
+
+  const cardClass = isDark
+    ? "bg-slate-900 shadow-xl rounded-2xl p-6 w-full max-w-lg border border-slate-700"
+    : "bg-white shadow-xl rounded-2xl p-6 w-full max-w-lg border border-gray-100";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex flex-col items-center px-4">
+    <div className={rootClass}>
       <Toaster />
 
       {/* HEADER */}
-      <header className="py-6 text-center">
-        <h1 className="text-4xl font-extrabold text-teal-800 flex items-center justify-center gap-2">
-          <FiFileText className="text-teal-700" />
-          Patient Document Portal
-        </h1>
-
-        <p className="text-gray-600 mt-2 max-w-2xl">
-          Upload, manage and securely access all your important medical reports in one place.
-        </p>
-        
-      </header>
-
-      {/* HERO */}
-      <section className="flex flex-col items-center mt-4 animate-fadeUp">
-        <img
-          src={MedicalUploadImg}
-          alt="Medical Upload"
-          className="w-72 md:w-80 drop-shadow-xl"
-        />
-
-        <div className="text-center my-6">
-          <h2 className="text-2xl font-semibold text-gray-900">
-            Store Your Medical Documents Securely
-          </h2>
-          <p className="text-gray-600 mt-1 text-sm">
-            Quick upload • Easy download • Privacy protected 🔐
-          </p>
+      <header className="py-6 w-full max-w-6xl flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <FiFileText className="text-teal-600 text-3xl" />
+          <h1 className="text-3xl md:text-4xl font-extrabold text-teal-700">
+            Patient Document Portal
+          </h1>
         </div>
 
-        {/* Upload Card */}
-        <div className="bg-white shadow-xl rounded-2xl p-6 w-full max-w-lg border border-gray-100">
-          <UploadForm onUploadSuccess={refreshList} />
+        {/* Theme Toggle */}
+        <button
+          onClick={toggleTheme}
+          className="flex items-center gap-2 px-3 py-2 rounded-full border text-sm
+            border-teal-600 text-white bg-teal-700 hover:bg-teal-800 transition"
+        >
+          {isDark ? <FiSun /> : <FiMoon />}
+          {isDark ? "Light Mode" : "Dark Mode"}
+        </button>
+      </header>
+
+      <p className="text-gray-600 mb-4 text-center max-w-2xl">
+        Upload, manage & securely access your medical reports.
+      </p>
+
+      {/* HERO */}
+      <section className="flex flex-col items-center animate-fadeUp">
+        <img
+          src={MedicalUploadImg}
+          alt="Upload"
+          className="w-64 md:w-80 drop-shadow-xl mb-4"
+          draggable="false"
+        />
+
+        <h2 className="text-2xl font-semibold">
+          Store Documents Securely 🔐
+        </h2>
+        <p className="text-gray-600 text-sm mt-1 mb-6">
+          Quick upload • Instant access • Full privacy
+        </p>
+
+        <div className={cardClass}>
+          <UploadForm onUploadSuccess={triggerUpdate} isDark={isDark} />
         </div>
       </section>
 
       {/* DOCUMENTS */}
-      <section className="w-full max-w-6xl mt-12 pb-16 animate-fadeUp">
-        <h3 className="text-xl font-bold text-teal-700 mb-4">
-          Your Documents 📂
-        </h3>
-        <DocumentList />
+      <section className="w-full max-w-6xl mt-10 pb-16 animate-fadeUp">
+        <h3 className="text-xl font-bold text-teal-700 mb-4">Your Documents 📂</h3>
+        <DocumentList isDark={isDark} updateSignal={updateSignal} />
       </section>
     </div>
   );
