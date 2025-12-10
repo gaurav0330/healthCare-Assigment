@@ -58,7 +58,7 @@ function App() {
         />
 
         <h2 className="text-2xl font-semibold">
-          Store Documents Securely 🔐
+          Store Documents Securely 
         </h2>
         <p className="text-gray-600 text-sm mt-1 mb-6">
           Quick upload • Instant access • Full privacy

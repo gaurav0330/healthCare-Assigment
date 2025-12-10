@@ -114,6 +114,7 @@ export default function DocumentList({ isDark, updateSignal }) {
                   >
                     Download
                   </button>
+                  
                   <button
                     className="text-red-600 hover:underline text-sm"
                     onClick={async () => {

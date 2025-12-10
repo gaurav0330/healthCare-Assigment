@@ -31,6 +31,7 @@ const upload = multer({ storage, fileFilter });
 // Health check
 app.get('/', (req, res) => res.json({ message: "API is running" }));
 
+
 // 1️⃣ Upload PDF
 app.post('/documents/upload', upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
@@ -51,6 +52,7 @@ app.post('/documents/upload', upload.single('file'), (req, res) => {
   );
 });
 
+
 // 2️⃣ List all documents
 app.get('/documents', (req, res) => {
   db.all(`SELECT * FROM documents ORDER BY created_at DESC`, [], (err, rows) => {
@@ -58,6 +60,7 @@ app.get('/documents', (req, res) => {
     res.json(rows);
   });
 });
+
 
 // 3️⃣ Download PDF
 app.get('/documents/:id', (req, res) => {
@@ -67,6 +70,7 @@ app.get('/documents/:id', (req, res) => {
     res.download(doc.filepath, doc.originalName);
   });
 });
+
 
 // 4️⃣ Delete PDF
 app.delete('/documents/:id', (req, res) => {

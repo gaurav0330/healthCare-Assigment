@@ -1,4 +1,4 @@
-# Patient Document Portal
+# 📌 Patient Document Portal
 
 A simple full-stack healthcare web application for managing medical documents.
 
@@ -129,10 +129,7 @@ curl -X DELETE http://localhost:5000/documents/1
 - ✔ Documentation included: `design.md` + `README.md`
 
 ## 👨‍💻 Author
-
 **Ayush **  
 Full Stack Developer (React + Node.js)
 
 ---
-
-Made with ❤️ for healthcare document management

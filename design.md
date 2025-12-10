@@ -37,25 +37,19 @@
 - Improve API security (rate limiting, access rules)
 - Use **NGINX** or load balancer for scalability
 
-## 🏗️ 2️⃣ Architecture Overview
-
-### Architecture Flow Diagram
-
-```
- ┌──────────────-┐        Upload / Fetch         ┌──────────────┐
- │   Frontend    │  ───────────────────────────▶|   Backend     │
- │ (React + Vite)│       JSON / File APIs        │ (Express.js)  │
- └───────┬───────┘                               └───────┬───────┘
-         │                                               │
-         │ Preview / Download                            │ Query
-         ▼                                               ▼
- ┌──────────────┐                             ┌──────────────┐
- │ Local Uploads │                             │   SQLite DB  │
- │   Folder      │◀────────────────────────────│ documents tbl│
- └──────────────┘                             └──────────────┘
-```
-
-## 🔌 3️⃣ API Specification
+## 2. Architecture Overview
+┌────────────────┐          Upload / Fetch           ┌────────────────┐
+│    Frontend     │ ───────────────────────────────▶ │    Backend     │
+│  React + Vite   │         JSON / File APIs          │  Express.js    │
+└───────┬────────┘                                   └───────┬────────┘
+│                                                    │
+│ Preview / Download                                 │ Query / Save
+▼                                                    ▼
+┌────────────────┐                                  ┌────────────────┐
+│  Local Uploads  │ ◀──────────────────────────────▶ │   SQLite DB    │
+│    Folder       │        File operations           │ documents table│
+└────────────────┘                                  └────────────────┘
+text## 3. API Specification
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -143,20 +137,16 @@ Deletes file + database record
 
 ### 📤 Download Flow
 
-1. User clicks "Download"
-2. Backend finds file by ID in DB
-3. File is streamed for browser download
+User clicks "Download" on a document
+Frontend calls GET /documents/:id
+Backend retrieves the file path from the database
+File is streamed to the browser with Content-Disposition: attachment
 
-## 🧩 5️⃣ Assumptions
+5. Assumptions & Constraints
 
-- Only one user exists (no login system required)
-- Max file type allowed: **PDF only**
-- Local uploads folder acts as storage
-- Files expected to be small (no chunk uploads)
-- App runs locally, not cloud-hosted
-- No concurrency issues due to single-user assumption
-
----
-
-**Document Version:** 1.0  
-**Last Updated:** December 2025
+Only one user → no authentication or login system needed
+Only PDF files are allowed
+Files are stored locally in an uploads/ folder
+Files are expected to be reasonably small (no chunked uploads)
+Application runs locally (not deployed to the cloud)
+No concurrency concerns due to single-user design
